@@ -7,6 +7,8 @@ import json
 from Customer import Customer
 from Branch import Branch
 import multiprocessing as mp
+import time
+#import sys
 
 
 #from multiprocessing import Process
@@ -34,8 +36,10 @@ def Cust(custid, custevents):
             out = cust.createStub()
             print ("create stub output: " + out)
             out2 = cust.executeEvents()
-            print (out2)
+            print (out2, file = of)
             
+
+of = open('output.json', 'a')   
 
 Serve(1, 400, 3)
 Serve(2, 0, 7)
@@ -63,7 +67,8 @@ if __name__ == '__main__':
     for i in data:
         if i['type'] == 'client':
             print (i['events'])
-            p = mp.Process(target=Cust, args=(i['id'],i['events'],))
+            p = mp.Process(target=Cust, args=(i['id'],str(i['events']),))
+            time.sleep(.1)
             p.start()
 #            p.join()
 # Closing file

@@ -28,4 +28,4 @@ class Customer:
 #        for i in self.events:
         response = self.stub.MsgDelivery(bankworld_pb2.BranchRequest(msg=self.events))
         print("Customer received: " + response.branch_msg)
-        return ("Done executing Events")
+        return (response.branch_msg)

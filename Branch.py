@@ -4,6 +4,7 @@ import time
 import grpc
 import bankworld_pb2
 import bankworld_pb2_grpc
+import json
 
 class Branch(bankworld_pb2_grpc.BranchServicer):
 
@@ -26,15 +27,19 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
     # TODO: students are expected to process requests from both Client and Branch
     def MsgDelivery(self, request, context):
         print ("Branch received: " + request.msg)
+        branchmsg = "{\'id\': " + str(self.id) + ", \'recv\': [{\'interface\': "
         self.recvMsg.append(request.msg)
-        for i in request.msg:
+        request.msg = request.msg.replace("\'", "\"")
+        print ("message after replacement is "+request.msg)
+        reqmsg = json.loads(request.msg)
+        for i in reqmsg:
             if i['interface'] == 'deposit':
-                pass
+                branchmsg = branchmsg + "\'deposit\', \'result\': "
             elif i['interface'] == 'withdraw':
-                pass
+                branchmsg = branchmsg + "\'withdraw\', \'result\': "
             elif i['interface'] == 'query':
                 time.sleep(3)
-                branchmsg = branchmsg + "'money':" + self.balance
+                branchmsg = branchmsg + "\'query\', \'result\': 'success', \'money\': " + str(self.balance)
         return bankworld_pb2.BranchReply(branch_msg=branchmsg)
 
 
