@@ -16,8 +16,8 @@ class Customer:
 
     # TODO: students are expected to create the Customer stub
     def createStub(self):
-        channel = grpc.insecure_channel('localhost:50051')
-#        with grpc.insecure_channel('localhost:50051') as channel:
+        channelnumber = 50050+self.id
+        channel = grpc.insecure_channel('localhost:'+str(channelnumber))
         self.stub = bankworld_pb2_grpc.BranchStub(channel)
             
         return ("Done creating stub")

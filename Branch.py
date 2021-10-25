@@ -28,14 +28,14 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         print ("Branch received: " + request.msg)
         return bankworld_pb2.BranchReply(branch_msg='success Branch received %s!' % request.msg)
 
-def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    bankworld_pb2_grpc.add_BranchServicer_to_server(Branch(1, 400, 3), server)
-    server.add_insecure_port('[::]:50051')
-    server.start()
-    server.wait_for_termination()
+#def serve():
+#    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+#    bankworld_pb2_grpc.add_BranchServicer_to_server(Branch(1, 400, 3), server)
+#    server.add_insecure_port('[::]:50051')
+#    server.start()
+#    server.wait_for_termination()
 
 
 #if __name__ == '__main__':
 #    logging.basicConfig()
-serve()
+#serve()
