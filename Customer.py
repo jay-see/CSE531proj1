@@ -20,10 +20,12 @@ class Customer:
         channel = grpc.insecure_channel('localhost:'+str(channelnumber))
         self.stub = bankworld_pb2_grpc.BranchStub(channel)
             
-        return ("Done creating stub")
+        return ("Done creating stub " + str(channelnumber))
 
     # TODO: students are expected to send out the events to the Bank
     def executeEvents(self):
+        print("executing Events")
+#        for i in self.events:
         response = self.stub.MsgDelivery(bankworld_pb2.BranchRequest(msg=self.events))
         print("Customer received: " + response.branch_msg)
         return ("Done executing Events")

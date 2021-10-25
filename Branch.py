@@ -1,6 +1,6 @@
 from concurrent import futures
 import logging
-
+import time
 import grpc
 import bankworld_pb2
 import bankworld_pb2_grpc
@@ -24,18 +24,17 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         pass
 
     # TODO: students are expected to process requests from both Client and Branch
-    def MsgDelivery(self,request, context):
+    def MsgDelivery(self, request, context):
         print ("Branch received: " + request.msg)
-        return bankworld_pb2.BranchReply(branch_msg='success Branch received %s!' % request.msg)
+        self.recvMsg.append(request.msg)
+        for i in request.msg:
+            if i['interface'] == 'deposit':
+                pass
+            elif i['interface'] == 'withdraw':
+                pass
+            elif i['interface'] == 'query':
+                time.sleep(3)
+                branchmsg = branchmsg + "'money':" + self.balance
+        return bankworld_pb2.BranchReply(branch_msg=branchmsg)
 
-#def serve():
-#    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-#    bankworld_pb2_grpc.add_BranchServicer_to_server(Branch(1, 400, 3), server)
-#    server.add_insecure_port('[::]:50051')
-#    server.start()
-#    server.wait_for_termination()
 
-
-#if __name__ == '__main__':
-#    logging.basicConfig()
-#serve()

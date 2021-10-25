@@ -6,8 +6,11 @@ import bankworld_pb2_grpc
 import json
 from Customer import Customer
 from Branch import Branch
-import subprocess
+import multiprocessing as mp
 
+
+#from multiprocessing import Process
+#import subprocess
 #import os
 #os.system("unset http_proxy")
 #os.system("unset https_proxy")
@@ -22,6 +25,17 @@ def Serve(id, balance, branches):
     server.add_insecure_port('[::]:'+str(channelnumber))
     server.start()
 
+def Cust(custid, custevents):
+#    for i in data:
+#        if i['type'] == 'client':
+            print (custevents)
+            cust = Customer(custid, custevents)
+            print ("testing")
+            out = cust.createStub()
+            print ("create stub output: " + out)
+            out2 = cust.executeEvents()
+            print (out2)
+            
 
 Serve(1, 400, 3)
 Serve(2, 0, 7)
@@ -38,16 +52,19 @@ data = json.load(f)
 # Iterating through the json
 # list
 # print (data[0])
-for i in data:
-	if i['type'] == 'client':
-		print(i['events'])
-		cust = Customer(i['id'], i['events'][0]['interface'])
-		print ("testing")
-		out = cust.createStub()
-		print (out)
-		out2 = cust.executeEvents()
-		print (out2)
-#		break
 
+
+#	       break
+
+if __name__ == '__main__':
+    mp.set_start_method('spawn')
+    q = mp.Queue()
+
+    for i in data:
+        if i['type'] == 'client':
+            print (i['events'])
+            p = mp.Process(target=Cust, args=(i['id'],i['events'],))
+            p.start()
+#            p.join()
 # Closing file
 f.close()
