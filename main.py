@@ -74,7 +74,7 @@ if __name__ == '__main__':
         if i['type'] == 'client':
             print (i['events'])
             p = mp.Process(target=Cust, args=(i['id'],str(i['events']),))
-            time.sleep(.5)
+#            time.sleep(.5)
 
 #            print ("Starting server. Listening on port " + str(50050+i['id']), file = of)
             p.start()
