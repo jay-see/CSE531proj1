@@ -8,22 +8,14 @@ from Customer import Customer
 from Branch import Branch
 import multiprocessing as mp
 import time
-#import sys
 
-
-#from multiprocessing import Process
-#import subprocess
-#import os
-#os.system("unset http_proxy")
-#os.system("unset https_proxy")
-
-
-#subprocess.call(['python3', 'Branch.py'])
 
 def Serve(id, balance, branches):
+    channelnumber = 50050+id
+#    print ("Starting server. Listening on port " + str(channelnumber), file = of)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     bankworld_pb2_grpc.add_BranchServicer_to_server(Branch(id, balance, branches), server)
-    channelnumber = 50050+id
+#    channelnumber = 50050+id
     server.add_insecure_port('[::]:'+str(channelnumber))
     server.start()
 
@@ -36,22 +28,29 @@ def Cust(custid, custevents):
             out = cust.createStub()
             print ("create stub output: " + out)
             out2 = cust.executeEvents()
-            print (out2, file = of)
-            
+#            print (out2, file = of)
+            with open("output.json", "a") as thefile:
+                thefile.write(out2+"\n")
 
-of = open('output.json', 'a')   
-
-Serve(1, 400, 3)
-Serve(2, 0, 7)
-
-#subprocess.call(['python3', 'main_cust.py'])
 
 # Opening JSON file
 f = open('input.json',)
- 
+data = json.load(f)
+
+def run():
+    print ("MAIN THREAD!!!!!!")
 # returns JSON object as
 # a dictionary
-data = json.load(f)
+#    data = json.load(f)
+    count = 0
+    for x in data:
+        if x['type'] == 'bank':
+            count += 1
+#            print ("Starting server. Listening on port " + str(50050+x['id']), file = of)
+    for y in data:
+        if y['type'] == 'bank':
+            print ("Number of banks is " + str(count))
+            Serve(y['id'], y['balance'], count)
 
 # Iterating through the json
 # list
@@ -59,17 +58,26 @@ data = json.load(f)
 
 
 #	       break
+run()
 
 if __name__ == '__main__':
+
     mp.set_start_method('spawn')
-    q = mp.Queue()
+#    q = mp.Queue()
+#    run()
+    for z in data:
+        if z['type'] == 'client':
+            with open("output.json", "a") as myfile1:
+                myfile1.write("Starting server. Listening on port " + str(50050+z['id'])+"\n")
 
     for i in data:
         if i['type'] == 'client':
             print (i['events'])
             p = mp.Process(target=Cust, args=(i['id'],str(i['events']),))
-            time.sleep(.1)
+            time.sleep(.5)
+
+#            print ("Starting server. Listening on port " + str(50050+i['id']), file = of)
             p.start()
-#            p.join()
+            p.join()
 # Closing file
 f.close()

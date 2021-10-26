@@ -25,6 +25,26 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         pass
 
     # TODO: students are expected to process requests from both Client and Branch
+
+    def Query(self):
+        return self.balance
+    
+    def Deposit(self, amount):
+        new_bal = self.balance + amount
+        if new_bal >= 0:
+            self.balance = new_bal
+            return "success"
+        else:
+            return "fail"
+
+    def Withdraw(self, amount):
+        new_bal = self.balance - amount
+        if new_bal >= 0:
+            self.balance = new_bal
+            return "success"
+        else:
+            return "fail"
+        
     def MsgDelivery(self, request, context):
         print ("Branch received: " + request.msg)
         branchmsg = "{\'id\': " + str(self.id) + ", \'recv\': [{\'interface\': "
@@ -35,11 +55,16 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         for i in reqmsg:
             if i['interface'] == 'deposit':
                 branchmsg = branchmsg + "\'deposit\', \'result\': "
+                result = Branch.Deposit(self,i['money'])
+                branchmsg = branchmsg + "\'" + result + "\'}, {\'interface\': "
             elif i['interface'] == 'withdraw':
                 branchmsg = branchmsg + "\'withdraw\', \'result\': "
+                result = Branch.Withdraw(self,i['money'])
+                branchmsg = branchmsg + "\'" + result + "\'}, {\'interface\': "
             elif i['interface'] == 'query':
                 time.sleep(3)
-                branchmsg = branchmsg + "\'query\', \'result\': 'success', \'money\': " + str(self.balance)
+                bal = Branch.Query(self)
+                branchmsg = branchmsg + "\'query\', \'result\': 'success', \'money\': " + str(bal) + "}]}"
         return bankworld_pb2.BranchReply(branch_msg=branchmsg)
 
 
