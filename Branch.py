@@ -26,6 +26,27 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
 
     # TODO: students are expected to process requests from both Client and Branch
 
+    def createStubsss(self, branches):
+        print ("Number of BRANCHES is "+ str(branches))
+        for i in range(branches):
+            if (i+1) != self.id :
+                channelnumber = 50050+i+1
+                channel = grpc.insecure_channel('localhost:'+str(channelnumber))
+                self.stubList.append(bankworld_pb2_grpc.BranchStub(channel))
+                print ("Created BRANCH stub " + str(channelnumber))
+        return ("Done creating BRANCH stubsss!!")
+
+    def Propagate_Withdraw(self, amount, context):
+        new_bal = self.balance - int(amount.msg)
+        print ("PROPAGATING WITHDRAW TO BRANCH #"+str(self.id)+".NEW BALANCE IS "+str(new_bal))
+        if new_bal >= 0:
+            self.balance = new_bal
+            print ("NEW BRANCH BALANCE = "+str(self.balance))
+            withdrawmsg = "success"
+        else :
+            withdrawmsg = "fail"
+        return bankworld_pb2.WithdrawReply(withdraw_msg=withdrawmsg)
+    
     def Query(self):
         return self.balance
     
@@ -41,10 +62,14 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         new_bal = self.balance - amount
         if new_bal >= 0:
             self.balance = new_bal
-            return "success"
+            print(str(self.id)+"PROPAGATING withdraw\n"+str(self.stubList))
+            response = self.stubList[0].Propagate_Withdraw(bankworld_pb2.WithdrawRequest(msg=str(amount)))
+            print("Customer received: " + response.withdraw_msg)
+            return (response.withdraw_msg)
+#            return "success"
         else:
             return "fail"
-        
+
     def MsgDelivery(self, request, context):
         print ("Branch received: " + request.msg)
         branchmsg = "{\'id\': " + str(self.id) + ", \'recv\': [{\'interface\': "
@@ -62,9 +87,9 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
                 result = Branch.Withdraw(self,i['money'])
                 branchmsg = branchmsg + "\'" + result + "\'}, {\'interface\': "
             elif i['interface'] == 'query':
-                time.sleep(3)
+#                time.sleep(3)
                 bal = Branch.Query(self)
-                branchmsg = branchmsg + "\'query\', \'result\': 'success', \'money\': " + str(bal) + "}]}"
+                branchmsg = branchmsg + "\'query\', \'result\': 'success', \'money\': "  # leave out balance until the end of program
         return bankworld_pb2.BranchReply(branch_msg=branchmsg)
 
 

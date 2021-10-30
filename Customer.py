@@ -24,8 +24,9 @@ class Customer:
 
     # TODO: students are expected to send out the events to the Bank
     def executeEvents(self):
-        print("executing Events")
+        print("executing Events: ID #"+ str(self.id))
 #        for i in self.events:
         response = self.stub.MsgDelivery(bankworld_pb2.BranchRequest(msg=self.events))
+#        time.sleep(3)
         print("Customer received: " + response.branch_msg)
         return (response.branch_msg)

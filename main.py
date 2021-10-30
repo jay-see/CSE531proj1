@@ -6,19 +6,40 @@ import bankworld_pb2_grpc
 import json
 from Customer import Customer
 from Branch import Branch
-import multiprocessing as mp
+import multiprocessing
 import time
+import threading
 
+serverlist = list()
+finalmsg = list()
+bankbranch = list()
 
 def Serve(id, balance, branches):
     channelnumber = 50050+id
-#    print ("Starting server. Listening on port " + str(channelnumber), file = of)
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    bankworld_pb2_grpc.add_BranchServicer_to_server(Branch(id, balance, branches), server)
-#    channelnumber = 50050+id
-    server.add_insecure_port('[::]:'+str(channelnumber))
-    server.start()
+#    serverlist = list()
+    
+    serverlist.append(grpc.server(futures.ThreadPoolExecutor(max_workers=10,)))
+    bankbranch.append(Branch(id, balance, branches))
+    print ("ID = "+ str(id))
+    bankworld_pb2_grpc.add_BranchServicer_to_server(bankbranch[id-1], serverlist[id-1])
 
+    serverlist[id-1].add_insecure_port('[::]:'+str(channelnumber))
+#    p = mp.Process(target=server.start(), args=())
+    serverlist[id-1].start()
+#    try:
+#        while True:
+#            time.sleep(20)
+#    except KeyboardInterrupt:
+#        server.stop(None)
+#    server.stop(None)
+#    p.start()
+#    p.join()
+    print ("Started SERVER at port "+str(channelnumber))
+
+    out = bankbranch[id-1].createStubsss(branches)
+    print ("Created BRANCH SELFSTUB #" + str(id))
+    print ("BRANCH create stubsss output: " + out)
+    
 def Cust(custid, custevents):
 #    for i in data:
 #        if i['type'] == 'client':
@@ -27,11 +48,15 @@ def Cust(custid, custevents):
             print ("testing")
             out = cust.createStub()
             print ("create stub output: " + out)
-            out2 = cust.executeEvents()
-#            print (out2, file = of)
-            with open("output.json", "a") as thefile:
-                thefile.write(out2+"\n")
-
+#            return cust
+        
+#def Custexecute(customer)
+            finalmsg.append(cust.executeEvents())
+#            with open("output.json", "a") as thefile:
+#                thefile.write(out2+"\n")
+#                for i in range(len(serverlist)):
+#                    thefile.write(
+#            return "success"
 
 # Opening JSON file
 f = open('input.json',)
@@ -43,6 +68,9 @@ def run():
 # a dictionary
 #    data = json.load(f)
     count = 0
+    serverlist = list()
+#    p2list = list()
+    
     for x in data:
         if x['type'] == 'bank':
             count += 1
@@ -50,34 +78,63 @@ def run():
     for y in data:
         if y['type'] == 'bank':
             print ("Number of banks is " + str(count))
-            Serve(y['id'], y['balance'], count)
+            serverlist.append(Serve(y['id'], y['balance'], count))
+#            p2 = threading.Thread(target=Serve, args=(y['id'], y['balance'], count,))
+#            p2list.append(p2)
+#            p2.start()
+ #   for p2 in p2list:
+ #       p2.join()
 
+#    for z in range(len(serverlist)):
+#        out = serverlist[z].createStubsss(count)
+#        print ("Created BRANCH SELFSTUB #" + str(z))
+#    print ("BRANCH create stubsss output: " + out)
 # Iterating through the json
 # list
 # print (data[0])
 
 
 #	       break
-run()
+#run()
 
 if __name__ == '__main__':
-
-    mp.set_start_method('spawn')
-#    q = mp.Queue()
+    logging.basicConfig()
+#    processlist = list()
+#    multiprocessing.set_start_method('spawn')
+#    q = multiprocessing.Queue()
 #    run()
     for z in data:
         if z['type'] == 'client':
             with open("output.json", "a") as myfile1:
                 myfile1.write("Starting server. Listening on port " + str(50050+z['id'])+"\n")
-
+    run()
     for i in data:
         if i['type'] == 'client':
             print (i['events'])
-            p = mp.Process(target=Cust, args=(i['id'],str(i['events']),))
-#            time.sleep(.5)
+            Cust(i['id'],str(i['events']),)
 
-#            print ("Starting server. Listening on port " + str(50050+i['id']), file = of)
-            p.start()
-            p.join()
+    with open("output.json", "a") as thefile:
+        for i in range(len(finalmsg)):
+            thefile.write(finalmsg[i])
+            # write the final balances to file
+            thefile.write(str(bankbranch[i].balance)+"}]}\n")
+
+
+
+
+#            p = multiprocessing.Process(target=Cust, args=(i['id'],str(i['events']),)) 
+#            p.start()
+#            processlist.append(p)
+#    for p in processlist:
+#        p.join()
+
+#    for i in range(len(custlist)):
+#        out2 = custlist[i].executeEvents()
+        
+#        with open("output.json", "a") as thefile:
+#            thefile.write(out2+"\n")
+
+#            p.start()
+#            p.join()
 # Closing file
 f.close()
