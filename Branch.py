@@ -38,6 +38,17 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
                 self.stubList.append(None)
         return ("Done creating BRANCH stubsss!!")
 
+    def Propagate_Deposit(self, amount, context):
+        new_bal = self.balance + int(amount.msg)
+        print ("PROPAGATING DEPOSIT TO BRANCH #"+str(self.id)+".NEW BALANCE IS "+str(new_bal))
+        if new_bal >= 0:
+            self.balance = new_bal
+            print ("NEW BRANCH BALANCE = "+str(self.balance))
+            depositmsg = "success"
+        else :
+            depositmsg = "fail"
+        return bankworld_pb2.DepositReply(deposit_msg=depositmsg)
+    
     def Propagate_Withdraw(self, amount, context):
         new_bal = self.balance - int(amount.msg)
         print ("PROPAGATING WITHDRAW TO BRANCH #"+str(self.id)+".NEW BALANCE IS "+str(new_bal))
@@ -56,7 +67,12 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         new_bal = self.balance + amount
         if new_bal >= 0:
             self.balance = new_bal
-            return "success"
+            print(str(self.id)+"PROPAGATING deposit\n"+str(self.stubList))
+            for i in range(len(self.stubList)) :
+                if (i+1) != self.id :
+                    response = self.stubList[i].Propagate_Deposit(bankworld_pb2.DepositRequest(msg=str(amount)))
+            print("Customer received: " + response.deposit_msg)
+            return (response.deposit_msg)
         else:
             return "fail"
 
