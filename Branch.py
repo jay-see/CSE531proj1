@@ -34,6 +34,8 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
                 channel = grpc.insecure_channel('localhost:'+str(channelnumber))
                 self.stubList.append(bankworld_pb2_grpc.BranchStub(channel))
                 print ("Created BRANCH stub " + str(channelnumber))
+            else :
+                self.stubList.append(None)
         return ("Done creating BRANCH stubsss!!")
 
     def Propagate_Withdraw(self, amount, context):
@@ -63,10 +65,11 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
         if new_bal >= 0:
             self.balance = new_bal
             print(str(self.id)+"PROPAGATING withdraw\n"+str(self.stubList))
-            response = self.stubList[0].Propagate_Withdraw(bankworld_pb2.WithdrawRequest(msg=str(amount)))
+            for i in range(len(self.stubList)) :
+                if (i+1) != self.id :
+                    response = self.stubList[i].Propagate_Withdraw(bankworld_pb2.WithdrawRequest(msg=str(amount)))
             print("Customer received: " + response.withdraw_msg)
             return (response.withdraw_msg)
-#            return "success"
         else:
             return "fail"
 
@@ -84,6 +87,7 @@ class Branch(bankworld_pb2_grpc.BranchServicer):
                 branchmsg = branchmsg + "\'" + result + "\'}, {\'interface\': "
             elif i['interface'] == 'withdraw':
                 branchmsg = branchmsg + "\'withdraw\', \'result\': "
+                print("WITHDRAW"+str(self.id))
                 result = Branch.Withdraw(self,i['money'])
                 branchmsg = branchmsg + "\'" + result + "\'}, {\'interface\': "
             elif i['interface'] == 'query':
